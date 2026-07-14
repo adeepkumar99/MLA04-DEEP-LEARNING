@@ -1,0 +1,8 @@
+heads = 7
+tosses = 10
+
+p_mle = heads / tosses
+
+print("MLE Probability =", p_mle)
+ OUTPUT:
+MLE Probability = 0.7
