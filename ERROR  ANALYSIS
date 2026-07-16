@@ -1,0 +1,339 @@
+# ==========================================
+# STEP 1 : Import Libraries
+# ==========================================
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+from google.colab import files
+
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import classification_report
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import precision_score
+from sklearn.metrics import recall_score
+from sklearn.metrics import f1_score
+from sklearn.metrics import ConfusionMatrixDisplay
+
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+
+# ==========================================
+# STEP 2 : Upload Dataset
+# ==========================================
+
+uploaded = files.upload()
+
+# ==========================================
+# STEP 3 : Read Excel File
+# ==========================================
+
+df = pd.read_excel("Student_Attendance_Assignment_Dataset.xlsx")
+
+print("\nDataset")
+print(df)
+
+# ==========================================
+# STEP 4 : Dataset Information
+# ==========================================
+
+print("\nFirst Five Records")
+print(df.head())
+
+print("\nDataset Information")
+print(df.info())
+
+print("\nStatistics")
+print(df.describe())
+
+# ==========================================
+# STEP 5 : Convert Pass/Fail to Numbers
+# ==========================================
+
+encoder = LabelEncoder()
+
+df["Result"] = encoder.fit_transform(df["Result"])
+
+print("\nEncoded Dataset")
+print(df)
+
+# ==========================================
+# STEP 6 : Select Features
+# ==========================================
+
+X = df[["Attendance (%)","Assignment Marks"]]
+
+y = df["Result"]
+
+# ==========================================
+# STEP 7 : Split Dataset
+# ==========================================
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X,
+    y,
+    test_size=0.20,
+    random_state=42
+)
+
+# ==========================================
+# STEP 8 : Create Neural Network
+# ==========================================
+
+model = Sequential()
+
+model.add(Dense(8,
+                input_dim=2,
+                activation='relu'))
+
+model.add(Dense(4,
+                activation='relu'))
+
+model.add(Dense(1,
+                activation='sigmoid'))
+
+# ==========================================
+# STEP 9 : Compile Model
+# ==========================================
+
+model.compile(
+    optimizer='adam',
+    loss='binary_crossentropy',
+    metrics=['accuracy']
+)
+
+# ==========================================
+# STEP 10 : Train Model
+# ==========================================
+
+history = model.fit(
+    X_train,
+    y_train,
+    epochs=100,
+    verbose=1
+)
+
+# ==========================================
+# STEP 11 : Evaluate Model
+# ==========================================
+
+loss, accuracy = model.evaluate(X_test, y_test)
+
+print("\nTest Accuracy =", accuracy)
+
+print("Loss =", loss)
+
+# ==========================================
+# STEP 12 : Predict
+# ==========================================
+
+y_probability = model.predict(X_test)
+
+print("\nPrediction Probability")
+
+print(y_probability)
+
+# ==========================================
+# STEP 13 : Convert Probability to Class
+# ==========================================
+
+y_pred = []
+
+for value in y_probability:
+
+    if value >= 0.5:
+        y_pred.append(1)
+
+    else:
+        y_pred.append(0)
+
+y_pred = np.array(y_pred)
+
+print("\nPredicted Classes")
+
+print(y_pred)
+
+# ==========================================
+# STEP 14 : Actual vs Predicted
+# ==========================================
+
+comparison = pd.DataFrame()
+
+comparison["Actual"] = y_test.values
+
+comparison["Predicted"] = y_pred
+
+print("\nActual Vs Predicted")
+
+print(comparison)
+
+# ==========================================
+# STEP 15 : Confusion Matrix
+# ==========================================
+
+cm = confusion_matrix(y_test, y_pred)
+
+print("\nConfusion Matrix")
+
+print(cm)
+
+TN = cm[0][0]
+FP = cm[0][1]
+FN = cm[1][0]
+TP = cm[1][1]
+
+print("\nTrue Negative :",TN)
+print("False Positive :",FP)
+print("False Negative :",FN)
+print("True Positive :",TP)
+
+# ==========================================
+# STEP 16 : Metrics
+# ==========================================
+
+accuracy = accuracy_score(y_test,y_pred)
+
+precision = precision_score(y_test,y_pred)
+
+recall = recall_score(y_test,y_pred)
+
+f1 = f1_score(y_test,y_pred)
+
+print("\nAccuracy :",accuracy)
+
+print("Precision :",precision)
+
+print("Recall :",recall)
+
+print("F1 Score :",f1)
+
+# ==========================================
+# STEP 17 : Classification Report
+# ==========================================
+
+print("\nClassification Report")
+
+print(classification_report(y_test,y_pred))
+
+# ==========================================
+# STEP 18 : Draw Confusion Matrix
+# ==========================================
+
+disp = ConfusionMatrixDisplay(
+    confusion_matrix=cm,
+    display_labels=["Fail","Pass"]
+)
+
+disp.plot(cmap="Blues")
+
+plt.title("Confusion Matrix")
+
+plt.show()
+
+# ==========================================
+# STEP 19 : Error Analysis
+# ==========================================
+
+comparison["Error"] = comparison["Actual"] != comparison["Predicted"]
+
+print("\nError Analysis")
+
+print(comparison)
+
+# ==========================================
+# STEP 20 : Wrong Predictions
+# ==========================================
+
+wrong = comparison[comparison["Error"]==True]
+
+print("\nWrong Predictions")
+
+print(wrong)
+
+# ==========================================
+# STEP 21 : Total Errors
+# ==========================================
+
+total_errors = comparison["Error"].sum()
+
+print("\nTotal Wrong Predictions :",total_errors)
+
+correct_predictions = len(comparison)-total_errors
+
+print("Correct Predictions :",correct_predictions)
+
+error_percentage = (total_errors/len(comparison))*100
+
+print("Error Percentage :",error_percentage,"%")
+
+# ==========================================
+# STEP 22 : Accuracy Graph
+# ==========================================
+
+plt.figure(figsize=(7,5))
+
+plt.plot(history.history['accuracy'])
+
+plt.title("Training Accuracy")
+
+plt.xlabel("Epoch")
+
+plt.ylabel("Accuracy")
+
+plt.grid(True)
+
+plt.show()
+
+# ==========================================
+# STEP 23 : Loss Graph
+# ==========================================
+
+plt.figure(figsize=(7,5))
+
+plt.plot(history.history['loss'])
+
+plt.title("Training Loss")
+
+plt.xlabel("Epoch")
+
+plt.ylabel("Loss")
+
+plt.grid(True)
+
+plt.show()
+
+# ==========================================
+# STEP 24 : Summary Table
+# ==========================================
+
+summary = pd.DataFrame({
+
+    "Metric":[
+        "Accuracy",
+        "Precision",
+        "Recall",
+        "F1 Score",
+        "Correct Predictions",
+        "Wrong Predictions",
+        "Error Percentage"
+    ],
+
+    "Value":[
+        accuracy,
+        precision,
+        recall,
+        f1,
+        correct_predictions,
+        total_errors,
+        error_percentage
+    ]
+
+})
+
+print("\nSummary")
+
+print(summary)
