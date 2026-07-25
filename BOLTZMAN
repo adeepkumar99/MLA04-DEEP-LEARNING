@@ -1,0 +1,28 @@
+import math
+
+# Boltzmann Constant (J/K)
+k = 1.380649e-23
+
+# Temperature in Kelvin
+T = 300
+
+# Energy in Joules
+E = -2.5e-21
+
+# Calculate Boltzmann Probability
+probability = math.exp(-E / (k * T))
+
+print("Boltzmann Constant (k):", k)
+print("Temperature (T):", T, "K")
+print("Energy (E):", E, "J")
+print("Boltzmann Probability:", probability)
+output:
+Boltzmann Constant (k): 1.380649e-23
+
+Temperature (T): 300 K
+
+Energy (E): -2.5e-21 J
+
+Boltzmann Probability: 1.8286552786609993
+
+Run completed in 12793.5ms
